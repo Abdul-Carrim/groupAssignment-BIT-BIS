@@ -1,182 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-  <link href="./css/site.css" rel="stylesheet">
-</head>
-<body>
-  <div class="header">
-    <div class="toggle">
-      <a id="toggle-nav"><i class="fa fa-navicon cog"></i></a>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <title>Dashboard</title>
+    <link href="./css/site.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="header">
+      <div class="toggle">
+        <a id="toggle-nav"><i class="fa fa-navicon cog"></i></a>
+      </div>
     </div>
-  </div>
-
-  <div class="container">
-    <div class="sidebar" id="sidebar">
-      <a href="dashboard.html"><i class="fa fa-home"></i> Dashboard</a>
-      <a href="form.html"><i class="fa fa-shopping-cart"></i> Forms</a>
-      <a href="tables.html"><i class="fa fa-shopping-bag"></i> Tables</a>
-    </div>
-
-    <div class="content">
-      <!-- Summary section -->
-      <div class="summary-container">
-        <div class="summary">
-          <div class="summary-icon"><i class="fa fa-users"></i></div>
-          <div class="summary-content">
-            <div class="summary-heading">Users</div>
-            <div><h2 id="usersCount">0</h2></div>
+    <div class="container">
+      <div class="sidebar" id="sidebar">
+        <a href="dashboard.html"><i class="fa fa-home"></i> Dashboard</a>
+        <a href="form.html"><i class="fa fa-shopping-cart"></i> Forms</a>
+        <a href="tables.html"><i class="fa fa-shopping-bag"></i> Tables</a>
+      </div>
+      <div class="content">
+        <div class="summary-container">
+          <div class="summary">
+            <div class="summary-icon"><i class="fa fa-users"></i></div>
+            <div class="summary-content">
+              <div class="summary-heading">Users</div>
+              <div><h2>0</h2></div>
+            </div>
+          </div>
+          <div class="summary">
+            <div class="summary-icon"><i class="fa fa-signal"></i></div>
+            <div class="summary-content">
+              <div class="summary-heading">Products</div>
+              <div><h2>0</h2></div>
+            </div>
+          </div>
+          <div class="summary">
+            <div class="summary-icon"><i class="fa fa-shopping-cart"></i></div>
+            <div class="summary-content">
+              <div class="summary-heading">Sales</div>
+              <div><h2>0</h2></div>
+            </div>
+          </div>
+          <div class="summary">
+            <div class="summary-icon"><i class="fa fa-line-chart"></i></div>
+            <div class="summary-content">
+              <div class="summary-heading">Profit</div>
+              <div><h2>0</h2></div>
+            </div>
           </div>
         </div>
-        <div class="summary">
-          <div class="summary-icon"><i class="fa fa-signal"></i></div>
-          <div class="summary-content">
-            <div class="summary-heading">Products</div>
-            <div><h2 id="productsCount">0</h2></div>
+        <div class="charts-container">
+          <div class="chart-card">
+            <h4 class="purple">Sales Trend</h4>
+            <canvas id="salesChart"></canvas>
           </div>
-        </div>
-        <div class="summary">
-          <div class="summary-icon"><i class="fa fa-shopping-cart"></i></div>
-          <div class="summary-content">
-            <div class="summary-heading">Sales</div>
-            <div><h2 id="salesCount">0</h2></div>
+          <div class="chart-card">
+            <h4 class="magenta">Site Visitors Last 10 Days</h4>
+            <canvas id="visitorsChart"></canvas>
           </div>
-        </div>
-        <div class="summary">
-          <div class="summary-icon"><i class="fa fa-line-chart"></i></div>
-          <div class="summary-content">
-            <div class="summary-heading">Profit</div>
-            <div><h2 id="profitCount">0</h2></div>
+          <div class="chart-card">
+            <h4 class="l">Categories Trend</h4>
+            <canvas id="categoriesChart"></canvas>
+          </div>
+          <div class="chart-card">
+            <h4 class="red">Product Trend</h4>
+            <canvas id="productTrendChart"></canvas>
           </div>
         </div>
       </div>
-
-      <!-- Charts Section -->
-      <div class="charts-container">
-        <div class="chart-card">
-          <h4 class="red">Sales Trend (Scatter)</h4>
-          <canvas id="salesChart"></canvas>
-        </div>
-        <div class="chart-card">
-          <h4 class="purple">Site Visitors (Line)</h4>
-          <canvas id="visitorsChart"></canvas>
-        </div>
-        <div class="chart-card">
-          <h4 class="blue">Categories Trend (Pie)</h4>
-          <canvas id="categoriesChart"></canvas>
-        </div>
-        <div class="chart-card">
-          <h4 class="orange">Product Trend (Bar)</h4>
-          <canvas id="productChart"></canvas>
-        </div>
-      </div>
     </div>
-  </div>
 
-  <!-- JS Libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-  <!-- App JS -->
-  <script>
-    $(document).ready(() => {
-      // Toggle sidebar
-      $("#toggle-nav").click(() => {
-        $("#sidebar").slideToggle("fast");
-      });
-
-      // ---- Fetch Dashboard Stats ----
-      fetch("http://localhost:3000/dash_stats")
-        .then(res => res.json())
-        .then(data => {
-          $("#usersCount").text(data.users || 0);
-          $("#productsCount").text(data.products || 0);
-          $("#salesCount").text(data.sales || 0);
-          $("#profitCount").text(data.profit || 0);
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      $("document").ready(() => {
+        // Toggle sidebar
+        $("#toggle-nav").click(function () {
+          $("#sidebar").toggle();
         });
 
-      // ---- Scatter Chart: Sales ----
-      fetch("http://localhost:3000/sales")
-        .then(res => res.json())
-        .then(data => {
-          new Chart(document.getElementById("salesChart"), {
+        
+        $.get("http://localhost:3000/dash_stats", function (data) {
+          $(".summary-content h2").eq(0).text(data.users);
+          $(".summary-content h2").eq(1).text(data.products);
+          $(".summary-content h2").eq(2).text(data.sales);
+          $(".summary-content h2").eq(3).text(data.profit);
+        });
+
+      
+        $.get("http://localhost:3000/sales", function (data) {
+          new Chart($("#salesChart")[0].getContext("2d"), {
             type: "scatter",
             data: {
-              datasets: [{
-                label: "Sales",
-                data: data, // expects [{x: day, y: value}, ...]
-                backgroundColor: "blue"
-              }]
+              datasets: [
+                {
+                  label: "Sales",
+                  data: data, // directly the array
+                  backgroundColor: "rgba(153, 102, 255, 0.2)",
+                  borderColor: "rgba(153, 102, 255, 1)",
+                },
+              ],
             },
             options: {
               scales: {
-                xAxes: [{ scaleLabel: { display: true, labelString: "Days" } }],
-                yAxes: [{ scaleLabel: { display: true, labelString: "Sales" } }]
-              }
-            }
+                xAxes: [{ type: "linear", position: "bottom" }],
+              },
+            },
           });
         });
 
-      // ---- Line Chart: Visitors ----
-      fetch("http://localhost:3000/visitors")
-        .then(res => res.json())
-        .then(data => {
-          new Chart(document.getElementById("visitorsChart"), {
+      
+        $.get("http://localhost:3000/visitors", function (data) {
+          new Chart($("#visitorsChart")[0].getContext("2d"), {
             type: "line",
             data: {
-              labels: data.map(d => d.day), // expects [{day:1, visitors:10}, ...]
-              datasets: [{
-                label: "Visitors",
-                data: data.map(d => d.visitors),
-                borderColor: "purple",
-                fill: false
-              }]
-            }
+              labels: data.day,
+              datasets: [
+                {
+                  label: "Visitors",
+                  data: data.count,
+                  borderColor: "rgb(75, 192, 192)",
+                  fill: false,
+                  tension: 0.1,
+                },
+              ],
+            },
           });
         });
 
-      // ---- Pie Chart: Sold Products (Categories) ----
-      fetch("http://localhost:3000/sold_products")
-        .then(res => res.json())
-        .then(data => {
-          new Chart(document.getElementById("categoriesChart"), {
+        
+        $.get("http://localhost:3000/sold_products", function (data) {
+          new Chart($("#categoriesChart")[0].getContext("2d"), {
             type: "pie",
             data: {
-              labels: data.map(d => d.category), // expects [{category:'Phones', value:20}, ...]
-              datasets: [{
-                data: data.map(d => d.value),
-                backgroundColor: ["#36A2EB", "#444", "#9BD0F5", "#FFCE56", "#4BC0C0"]
-              }]
-            }
+              labels: data.category,
+              datasets: [
+                {
+                  data: data.count,
+                  backgroundColor: [
+                    "#FF6384",
+                    "#36A2EB",
+                    "#FFCE56",
+                    "#4BC0C0",
+                    "#9966FF",
+                  ],
+                },
+              ],
+            },
           });
         });
 
-      // ---- Bar Chart: Top Products ----
-      fetch("http://localhost:3000/top_products")
-        .then(res => res.json())
-        .then(data => {
-          new Chart(document.getElementById("productChart"), {
+     
+        $.get("http://localhost:3000/top_products", function (data) {
+          new Chart($("#productTrendChart")[0].getContext("2d"), {
             type: "bar",
             data: {
-              labels: data.map(d => d.name), // expects [{name:'iPhone 16', sales:30}, ...]
-              datasets: [{
-                label: "Units Sold",
-                data: data.map(d => d.sales),
-                backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#8E44AD", "#16A085"]
-              }]
+              labels: data.product,
+              datasets: [
+                {
+                  label: "Best Selling",
+                  data: data.count,
+                  backgroundColor: "rgba(255, 99, 132, 0.2)",
+                  borderColor: "rgba(255, 99, 132, 1)",
+                  borderWidth: 1,
+                },
+              ],
             },
             options: {
+              indexAxis: "y",
               scales: {
-                yAxes: [{ ticks: { beginAtZero: true } }]
-              }
-            }
+                xAxes: [{ ticks: { beginAtZero: true } }],
+              },
+            },
           });
         });
-
-    });
-  </script>
-</body>
+      });
+    </script>
+  </body>
 </html>
