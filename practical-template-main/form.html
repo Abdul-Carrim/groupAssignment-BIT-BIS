@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <link href="./css/site.css" rel="stylesheet">
+    <title>Form</title>
+  </head>
+  <body>
+    <div class="header">
+      <div class="toggle">
+        <a id="toggle-nav"><i class="fa fa-navicon cog"></i></a>
+      </div>
+    </div>
+    <div class="container">
+      <div class="sidebar" id="sidebar">
+        <a href="dashboard.html"><i class="fa fa-home"></i> Dashboard</a>
+        <a href="form.html"><i class="fa fa-shopping-cart"></i> Forms</a>
+        <a href="tables.html"><i class="fa fa-shopping-bag"></i> Tables</a>
+      </div>
+      <div class="content">
+        <div class="left">
+          <h3>Product Registration</h3>
+          <div class="section-container">
+            <div class="section-header">Enter product details</div>
+            <div class="section-content">
+              <form action="">
+                <label class="label" for="product">Product Name</label>
+                <input type="text"><br>
+                <label class="label" for="price">Price</label>
+                <input type="number"><br>
+                <label class="label" for="category">Quantity</label>
+                <input id="quantity" name="quantity" type="number">
+                <label class="label" for="description">Description</label>
+                <textarea id name="description" rows="6"></textarea>
+                <button class="form-button" id="save">Save</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="right"></div>
+      </div>
+    </div>
+    <div class="modal" id="myModal">
+      <div class="modal-content">
+        <span class="close" id="span">&times;</span>
+        <h3>Message</h3>
+        <p>Edit me for success and error messages</p>
+      </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      $("document").ready(() => {
+        // Modal close
+        $("#span").click((e) => {
+          e.preventDefault();
+          $("#myModal").css("display", "none");
+        });
+
+        // Save button click
+        $("#save").click(async (e) => {
+          e.preventDefault();
+
+          // Collect form values
+          const product = $("input[type='text']").val().trim();
+          const price = parseFloat($("input[type='number']").eq(0).val().trim());
+          const quantity = parseFloat($("#quantity").val().trim());
+          const description = $("textarea").val().trim();
+
+          // Validation
+          let error = "";
+          if (!product || product.length < 5 || product.length > 50) {
+            error = "Product name must be between 5 and 50 characters.";
+          } else if (isNaN(price) || price <= 0) {
+            error = "Price must be a number greater than 0.";
+          } else if (isNaN(quantity) || quantity <= 0) {
+            error = "Quantity must be a number greater than 0.";
+          } else if (!description || description.length < 5 || description.length > 200) {
+            error = "Description must be between 5 and 200 characters.";
+          }
+
+          if (error) {
+            $(".modal-content p").text(error);
+            $("#myModal").css("display", "block");
+            return;
+          }
+
+          // Data to send
+          const data = {
+            name: product,
+            price: price,
+            description: description,
+            quantity: quantity
+          };
+
+          try {
+            // Send POST request
+            const res = await fetch("http://localhost:3000/products/", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data),
+            });
+
+            const result = await res.json();
+
+            if (res.ok) {
+              // Success
+              $(".modal-content p").text(result.message || "Product added successfully!");
+              $("#myModal").css("display", "block");
+
+              // Refresh table data
+              updateTable();
+            } else {
+              // Server returned error
+              $(".modal-content p").text(result.message || "Error saving product.");
+              $("#myModal").css("display", "block");
+            }
+          } catch (err) {
+            $(".modal-content p").text("Network error. Please try again.");
+            $("#myModal").css("display", "block");
+          }
+        });
+
+        // Function to update table data
+        async function updateTable() {
+          try {
+            const res = await fetch("http://localhost:3000/products");
+            const products = await res.json();
+
+            // Assuming you want to show data in `.right` section
+            const tableContainer = $(".right");
+            let tableHtml = `
+              <table border="1" cellpadding="5">
+                <tr>
+                  <th>Name</th><th>Price</th><th>Quantity</th><th>Description</th>
+                </tr>
+            `;
+
+            products.forEach(p => {
+              tableHtml += `
+                <tr>
+                  <td>${p.name}</td>
+                  <td>${p.price}</td>
+                  <td>${p.quantity}</td>
+                  <td>${p.description}</td>
+                </tr>
+              `;
+            });
+            tableHtml += "</table>";
+            tableContainer.html(tableHtml);
+
+          } catch (err) {
+            console.error("Error fetching table data:", err);
+          }
+        }
+
+        
+        updateTable();
+      });
+    </script>
+
+  </body>
+</html>
