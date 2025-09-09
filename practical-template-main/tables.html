@@ -1,20 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="./css/site.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <link href="./css/site.css" rel="stylesheet">
     <title>Table</title>
+    <style>
+      /* Simple modal styling */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5);
+        justify-content: center; align-items: center;
+      }
+      .modal-content {
+        background: white; padding: 20px; border-radius: 8px;
+        width: 90%; max-width: 500px;
+      }
+      .modal-content h3 { margin-top: 0; }
+    </style>
   </head>
   <body>
     <div class="header">
@@ -32,95 +41,214 @@
         <div class="left">
           <h3>Product Records</h3>
           <div class="section-container">
-            <div class="section-header">Details of avalialble products</div>
+            <div class="section-header">Details of available products</div>
             <div class="section-content">
-              <!-- section content-->
-              <h4>Implement here..</h4>
+              <!-- Table will load here -->
             </div>
           </div>
         </div>
         <div class="right"></div>
       </div>
     </div>
+
+    <!-- Delete Modal -->
+    <div class="modal" id="deleteModal">
+      <div class="modal-content">
+        <h3>Confirm Delete</h3>
+        <p>Are you sure you want to delete this product?</p>
+        <button id="cancelDelete">Cancel</button>
+        <button id="confirmDelete" style="background:red;color:white;">Delete</button>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+      <div class="modal-content">
+        <h3>Edit Product</h3>
+        <form id="editForm">
+          <input id="editId" type="hidden">
+          <label>Name:</label><br>
+          <input id="editName" type="text" required><br><br>
+          <label>Price:</label><br>
+          <input id="editPrice" type="number" required><br><br>
+          <label>Quantity:</label><br>
+          <input id="editQuantity" type="number" required><br><br>
+          <label>Description:</label><br>
+          <textarea id="editDescription" required></textarea><br><br>
+          <button id="cancelEdit" type="button">Cancel</button>
+          <button type="submit">Update</button>
+        </form>
+      </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
       $("document").ready(() => {
-        //
-      });
-    </script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-$("document").ready(() => {
-  const sectionContent = $(".section-content");
+        const sectionContent = $(".section-content");
+        let deleteId = null;
 
-  // Show loader
-  sectionContent.html(`
-    <div id="loader" style="display:flex;justify-content:center;align-items:center;height:150px;">
-      <div class="spinner" style="
-        border: 8px solid #f3f3f3;
-        border-top: 8px solid #3b82f6;
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        animation: spin 1s linear infinite;
-      "></div>
-    </div>
-    <style>
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    </style>
-  `);
+        // Loader
+        sectionContent.html(`
+          <div id="loader" style="display:flex;justify-content:center;align-items:center;height:150px;">
+            <div class="spinner" style="
+              border: 8px solid #f3f3f3;
+              border-top: 8px solid #3b82f6;
+              border-radius: 50%;
+              width: 60px;
+              height: 60px;
+              animation: spin 1s linear infinite;
+            "></div>
+          </div>
+          <style>
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
+        `);
 
-  setTimeout(() => {
-    $.ajax({
-      url: "http://localhost:3000/products",  
-      method: "GET",
-      dataType: "json",
-      success: function(products) {
-        let table = `
-          <table border="1" cellpadding="10" cellspacing="0" style="width:100%;border-collapse:collapse;">
-            <thead style="background:#f3f4f6;">
-              <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Description</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
+        // Fetch products after 3s
+        setTimeout(() => {
+          $.ajax({
+            url: "http://localhost:3000/products",  
+            method: "GET",
+            dataType: "json",
+            success: function(products) {
+              let table = `
+                <table border="1" cellpadding="10" cellspacing="0" style="width:100%;border-collapse:collapse;">
+                  <thead style="background:#f3f4f6;">
+                    <tr>
+                      <th>Id</th>
+                      <th>Name</th>
+                      <th>Price</th>
+                      <th>Quantity</th>
+                      <th>Description</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+              `;
 
-        products.forEach(p => {
-          table += `
-            <tr>
-              <td>${p.id}</td>
-              <td>${p.name}</td>
-              <td>${p.price}</td>
-              <td>${p.quantity}</td>
-              <td>${p.description}</td>
-              <td>
-                <a href="#" style="color:blue;margin-right:10px;">Edit</a>
-                <a href="#" style="color:red;">Delete</a>
-              </td>
-            </tr>
-          `;
+              products.forEach(p => {
+                table += `
+                  <tr>
+                    <td>${p.id}</td>
+                    <td>${p.name}</td>
+                    <td>${p.price}</td>
+                    <td>${p.quantity}</td>
+                    <td>${p.description}</td>
+                    <td>
+                      <a href="#" class="edit-btn" data-id="${p.id}" style="color:blue;margin-right:10px;">Edit</a>
+                      <a href="#" class="delete-btn" data-id="${p.id}" style="color:red;">Delete</a>
+                    </td>
+                  </tr>
+                `;
+              });
+
+              table += `</tbody></table>`;
+              sectionContent.html(table);
+            },
+            error: function(err) {
+              sectionContent.html(`<p style="color:red;">Failed to fetch products. Please try again later.</p>`);
+              console.error("Error fetching products:", err);
+            }
+          });
+        }, 3000);
+
+        // DELETE operation
+        $(document).on("click", ".delete-btn", function(e) {
+          e.preventDefault();
+          deleteId = $(this).data("id");
+          $("#deleteModal").css("display", "flex");
         });
 
-        table += `</tbody></table>`;
-        sectionContent.html(table);
-      },
-      error: function(err) {
-        sectionContent.html(`<p style="color:red;">Failed to fetch products. Please try again later.</p>`);
-        console.error("Error fetching products:", err);
-      }
-    });
-  }, 3000); // wait 3s
-});
-</script>
+        $("#cancelDelete").click(() => {
+          $("#deleteModal").hide();
+          deleteId = null;
+        });
 
+        $("#confirmDelete").click(() => {
+          if(deleteId) {
+            $.ajax({
+              url: `http://localhost:3000/products/${deleteId}`,
+              method: "DELETE",
+              success: function() {
+                alert("Product deleted successfully!");
+                location.reload();
+              },
+              error: function(err) {
+                alert("Failed to delete product.");
+                console.error(err);
+              }
+            });
+          }
+          $("#deleteModal").hide();
+        });
+
+        // EDIT operation
+        $(document).on("click", ".edit-btn", function(e) {
+          e.preventDefault();
+          const id = $(this).data("id");
+
+          $.ajax({
+            url: `http://localhost:3000/products/${id}`,
+            method: "GET",
+            success: function(product) {
+              $("#editId").val(product.id);
+              $("#editName").val(product.name);
+              $("#editPrice").val(product.price);
+              $("#editQuantity").val(product.quantity);
+              $("#editDescription").val(product.description);
+              $("#editModal").css("display", "flex");
+            },
+            error: function(err) {
+              alert("Failed to load product for editing.");
+              console.error(err);
+            }
+          });
+        });
+
+        $("#cancelEdit").click(() => {
+          $("#editModal").hide();
+        });
+
+        $("#editForm").submit(function(e) {
+          e.preventDefault();
+
+          const updatedProduct = {
+            name: $("#editName").val(),
+            price: $("#editPrice").val(),
+            quantity: $("#editQuantity").val(),
+            description: $("#editDescription").val()
+          };
+
+          const id = $("#editId").val();
+
+          $.ajax({
+            url: `http://localhost:3000/products/${id}`,
+            method: "PUT",
+            contentType: "application/json",
+            data: JSON.stringify(updatedProduct),
+            success: function() {
+              alert("Product updated successfully!");
+              $("#editModal").hide();
+              location.reload();
+            },
+            error: function(err) {
+              alert("Failed to update product.");
+              console.error(err);
+            }
+          });
+        });
+      });
+
+      $("document").ready(() => {
+        $("#toggle-nav").click(() => {
+      $("#sidebar").slideToggle("fast");
+    });
+      });
+
+
+    </script>
   </body>
 </html>
