@@ -48,5 +48,79 @@
         //
       });
     </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$("document").ready(() => {
+  const sectionContent = $(".section-content");
+
+  // Show loader
+  sectionContent.html(`
+    <div id="loader" style="display:flex;justify-content:center;align-items:center;height:150px;">
+      <div class="spinner" style="
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3b82f6;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+      "></div>
+    </div>
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  `);
+
+  setTimeout(() => {
+    $.ajax({
+      url: "http://localhost:3000/products",  
+      method: "GET",
+      dataType: "json",
+      success: function(products) {
+        let table = `
+          <table border="1" cellpadding="10" cellspacing="0" style="width:100%;border-collapse:collapse;">
+            <thead style="background:#f3f4f6;">
+              <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Description</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        products.forEach(p => {
+          table += `
+            <tr>
+              <td>${p.id}</td>
+              <td>${p.name}</td>
+              <td>${p.price}</td>
+              <td>${p.quantity}</td>
+              <td>${p.description}</td>
+              <td>
+                <a href="#" style="color:blue;margin-right:10px;">Edit</a>
+                <a href="#" style="color:red;">Delete</a>
+              </td>
+            </tr>
+          `;
+        });
+
+        table += `</tbody></table>`;
+        sectionContent.html(table);
+      },
+      error: function(err) {
+        sectionContent.html(`<p style="color:red;">Failed to fetch products. Please try again later.</p>`);
+        console.error("Error fetching products:", err);
+      }
+    });
+  }, 3000); // wait 3s
+});
+</script>
+
   </body>
 </html>
